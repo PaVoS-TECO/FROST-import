@@ -113,6 +113,9 @@ public class CSVReaderStrategyTest {
 		String[] data = {
 				"", "1", "name", "description", "encodingType", "{\"a\": \"1\"}"
 		};
+		String[] data2 = {
+				"", "1", "name", "description", "encodingType", "\"a\": \"1\"}"
+		};
 		
 		Method method;
 		try {
@@ -120,9 +123,11 @@ public class CSVReaderStrategyTest {
 			method = CSVReaderStrategy.class.getDeclaredMethod("getLocation", String[].class);
 			method.setAccessible(true);
 			String json = (String) method.invoke(reader, new Object[] { data });
+			String json2 = (String) method.invoke(reader, new Object[] { data2 });
 			JSONParser parser = new JSONParser();
 			JSONObject obj = (JSONObject) parser.parse(json);
 			
+			assertTrue(json2.equals(""));
 			assertTrue(((String) obj.get("@iot.id")).equals("1"));
 			assertTrue(((String) obj.get("name")).equals("name"));
 			assertTrue(((String) obj.get("description")).equals("description"));
@@ -158,6 +163,9 @@ public class CSVReaderStrategyTest {
 		String[] data = {
 				"", "1", "name", "description", "encodingType", "{\"a\": \"1\"}"
 		};
+		String[] data2 = {
+				"", "1", "name", "description", "encodingType", "\"a\": \"1\"}"
+		};
 		
 		Method method;
 		try {
@@ -165,9 +173,11 @@ public class CSVReaderStrategyTest {
 			method = CSVReaderStrategy.class.getDeclaredMethod("getFoI", String[].class);
 			method.setAccessible(true);
 			String json = (String) method.invoke(reader, new Object[] { data });
+			String json2 = (String) method.invoke(reader, new Object[] { data2 });
 			JSONParser parser = new JSONParser();
 			JSONObject obj = (JSONObject) parser.parse(json);
 			
+			assertTrue(json2.equals(""));
 			assertTrue(((String) obj.get("@iot.id")).equals("1"));
 			assertTrue(((String) obj.get("name")).equals("name"));
 			assertTrue(((String) obj.get("description")).equals("description"));
@@ -203,6 +213,9 @@ public class CSVReaderStrategyTest {
 		String[] data = {
 				"", "1", "name", "description", "{\"a\":\"1\"}", "1;2"
 		};
+		String[] data2 = {
+				"", "1", "name", "description", "\"a\":\"1\"}", "1;2"
+		};
 		
 		Method method;
 		try {
@@ -210,9 +223,11 @@ public class CSVReaderStrategyTest {
 			method = CSVReaderStrategy.class.getDeclaredMethod("getThing", String[].class);
 			method.setAccessible(true);
 			String json = (String) method.invoke(reader, new Object[] { data });
+			String json2 = (String) method.invoke(reader, new Object[] { data2 });
 			JSONParser parser = new JSONParser();
 			JSONObject obj = (JSONObject) parser.parse(json);
-			
+
+			assertTrue(json2.equals(""));
 			assertTrue(((String) obj.get("@iot.id")).equals("1"));
 			assertTrue(((String) obj.get("name")).equals("name"));
 			assertTrue(((String) obj.get("description")).equals("description"));
@@ -252,6 +267,13 @@ public class CSVReaderStrategyTest {
 		String[] data = {
 				"", "1", "name", "description", "observationType", "{\"a\":\"1\"}", "2", "3", "4"
 		};
+		String[] data2 = {
+				"", "1", "name", "description", "observationType", "\"a\":\"1\"}", "2", "3", "4"
+		};
+		String[] data3 = {
+				"", "1", "name", "description", "observationType", "{\"a\":\"1\"}", "2", "3", "4",
+				"observedArea", "phenomenonTime", "resultTime"
+		};
 		
 		Method method;
 		try {
@@ -259,9 +281,13 @@ public class CSVReaderStrategyTest {
 			method = CSVReaderStrategy.class.getDeclaredMethod("getDataStream", String[].class);
 			method.setAccessible(true);
 			String json = (String) method.invoke(reader, new Object[] { data });
+			String json2 = (String) method.invoke(reader, new Object[] { data2 });
+			String json3 = (String) method.invoke(reader, new Object[] { data3 });
 			JSONParser parser = new JSONParser();
 			JSONObject obj = (JSONObject) parser.parse(json);
-			
+			JSONObject obj2 = (JSONObject) parser.parse(json3);
+
+			assertTrue(json2.equals(""));
 			assertTrue(((String) obj.get("@iot.id")).equals("1"));
 			assertTrue(((String) obj.get("name")).equals("name"));
 			assertTrue(((String) obj.get("description")).equals("description"));
@@ -270,6 +296,9 @@ public class CSVReaderStrategyTest {
 			assertTrue(((JSONObject) obj.get("Thing")).toJSONString().equals("{\"@iot.id\":\"2\"}"));
 			assertTrue(((JSONObject) obj.get("ObservedProperty")).toJSONString().equals("{\"@iot.id\":\"3\"}"));
 			assertTrue(((JSONObject) obj.get("Sensor")).toJSONString().equals("{\"@iot.id\":\"4\"}"));
+			assertTrue(((String) obj2.get("observedArea")).equals("observedArea"));
+			assertTrue(((String) obj2.get("phenomenonTime")).equals("phenomenonTime"));
+			assertTrue(((String) obj2.get("resultTime")).equals("resultTime"));
 			
 		} catch (NoSuchMethodException e) {
 			System.out.println(e.getLocalizedMessage());
@@ -301,6 +330,10 @@ public class CSVReaderStrategyTest {
 				"", "1", "phenomenonTime", "result", "resultTime", "2", "3",
 				"resultQuality", "validTime", "{\"a\":\"1\"}"
 		};
+		String[] data2 = {
+				"", "1", "phenomenonTime", "result", "null", "2", "3",
+				"resultQuality", "validTime", "{\"a\":\"1\"}"
+		};
 		
 		Method method;
 		try {
@@ -308,14 +341,16 @@ public class CSVReaderStrategyTest {
 			method = CSVReaderStrategy.class.getDeclaredMethod("getObservation", String[].class);
 			method.setAccessible(true);
 			String json = (String) method.invoke(reader, new Object[] { data });
+			String json2 = (String) method.invoke(reader, new Object[] { data2 });
 			JSONParser parser = new JSONParser();
 			JSONObject obj = (JSONObject) parser.parse(json);
+			JSONObject obj2 = (JSONObject) parser.parse(json2);
 			
-			assertTrue(true);
 			assertTrue(((String) obj.get("@iot.id")).equals("1"));
 			assertTrue(((String) obj.get("phenomenonTime")).equals("phenomenonTime"));
 			assertTrue(((String) obj.get("result")).equals("result"));
 			assertTrue(((String) obj.get("resultTime")).equals("resultTime"));
+			assertTrue(((String) obj2.get("resultTime")).equals("phenomenonTime"));
 			assertTrue(((JSONObject) obj.get("Datastream")).toJSONString().equals("{\"@iot.id\":\"2\"}"));
 			//assertTrue(((JSONObject) obj.get("FeatureOfInterest")).toJSONString().equals("{\"@iot.id\":\"3\"}"));
 			assertTrue(((String) obj.get("resultQuality")).equals("resultQuality"));
@@ -338,43 +373,6 @@ public class CSVReaderStrategyTest {
 			System.out.println(e.getLocalizedMessage());
 			assertTrue(false);
 		} catch (ParseException e) {
-			System.out.println(e.getLocalizedMessage());
-			assertTrue(false);
-		}
-		
-	}
-
-	@Test
-	public void nullifyTest() {
-		
-		CSVReaderStrategy reader = new CSVReaderStrategy("");
-		String data1 = "null";
-		String data2 = "notnull";
-		
-		Method method;
-		try {
-			
-			method = CSVReaderStrategy.class.getDeclaredMethod("nullify", String.class);
-			method.setAccessible(true);
-			String reponse1 = (String) method.invoke(reader, new Object[] { data1 });
-			String reponse2 = (String) method.invoke(reader, new Object[] { data2 });
-			
-			assertTrue(reponse1 == null);
-			assertTrue(reponse2.equals("notnull"));
-			
-		} catch (NoSuchMethodException e) {
-			System.out.println(e.getLocalizedMessage());
-			assertTrue(false);
-		} catch (SecurityException e) {
-			System.out.println(e.getLocalizedMessage());
-			assertTrue(false);
-		} catch (IllegalAccessException e) {
-			System.out.println(e.getLocalizedMessage());
-			assertTrue(false);
-		} catch (IllegalArgumentException e) {
-			System.out.println(e.getLocalizedMessage());
-			assertTrue(false);
-		} catch (InvocationTargetException e) {
 			System.out.println(e.getLocalizedMessage());
 			assertTrue(false);
 		}

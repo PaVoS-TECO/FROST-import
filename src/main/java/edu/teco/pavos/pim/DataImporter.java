@@ -61,7 +61,7 @@ public class DataImporter implements ActionListener {
         layout.putConstraint(SpringLayout.EAST, this.urlField, -20, SpringLayout.EAST, this.contentPane);
         layout.putConstraint(SpringLayout.NORTH, this.urlField, 20, SpringLayout.NORTH, this.contentPane);
         
-        this.prefixField = new JTextField("import/");
+        this.prefixField = new JTextField("import-");
         contentPane.add(this.prefixField);
         layout.putConstraint(SpringLayout.WEST, this.prefixField, 20, SpringLayout.WEST, this.contentPane);
         layout.putConstraint(SpringLayout.EAST, this.prefixField, -20, SpringLayout.EAST, this.contentPane);
