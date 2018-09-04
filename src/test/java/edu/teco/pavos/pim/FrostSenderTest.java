@@ -25,7 +25,7 @@ public class FrostSenderTest {
 		String observedProperty = "{\"name\": \"TestProperty\", \"description\":  \"TestProperty"
 				+ "\", \"definition\": \"http://www.qudt.org/qudt/owl/1.0.0/quantity/Instances.html#Acceleration\","
 				+ "\"@iot.id\": \"" + id + "\"}";
-		String url = "http://pavos.oliver.pw:8080/FROST-Server/v1.0/ObservedProperties";
+		String url = "http://pavos-02.teco.edu/FROST-Server/v1.0/ObservedProperties";
 		FrostSender.sendToFrostServer(url, observedProperty);
 		
 		try {
@@ -87,7 +87,7 @@ public class FrostSenderTest {
 		}
 		
 		try {
-			String surl = "http://pavos.oliver.pw:8080/FROST-Server/v1.0/ObservedProperties('" + id + "')";
+			String surl = "http://pavos-02.teco.edu/FROST-Server/v1.0/ObservedProperties('" + id + "')";
 			URL url = new URL(surl);
 			HttpURLConnection http = (HttpURLConnection) url.openConnection();
 			http.setRequestMethod("DELETE");
