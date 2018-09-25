@@ -1,0 +1,6 @@
+sensor,"SensorID", "SensorTest123","ST1","application/pdf","https://cdn-shop.adafruit.com/datasheets/DHT22.pdf"
+observedProperty,"opID","Temperature","s_t0","http://www.qudt.org/qudt/owl/1.0.0/quantity/Instances.html#AreaTemperature"
+thing,"ThingID","ThingTest","Just for a test",""
+featureOfInterest,"FoIID","NA","A FoI","application/vnd.geo+json","{""coordinates"":[-114.123579,50.913185],""type"":""Point""}"
+dataStream,"DatastreamID","TemperatureDS","TemperatureDS","ObservationType","{""symbol"":""C"",""name"":""degree Celsius"",""definition"":""http://www.qudt.org/qudt/owl/1.0.0/unit/Instances.html#DegreeCelsius""}","ThingID","opID","SensorID","","",""
+observation,"ObservationID","2018-08-14T10:15:20.874Z","14.86","2018-08-14T10:15:20.874Z","DatastreamID","FoIID","","",""
