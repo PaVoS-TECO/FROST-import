@@ -55,7 +55,7 @@ public class DataImporter implements ActionListener {
         int w = 180;
         int h = 40;
         
-        this.urlField = new JTextField("http://pavos-master.teco.edu/FROST-Server/v1.0/");
+        this.urlField = new JTextField("http://pavos.oliver.pw:8080/FROST-Server/v1.0/");
         contentPane.add(this.urlField);
         layout.putConstraint(SpringLayout.WEST, this.urlField, 20, SpringLayout.WEST, this.contentPane);
         layout.putConstraint(SpringLayout.EAST, this.urlField, -20, SpringLayout.EAST, this.contentPane);
@@ -85,7 +85,7 @@ public class DataImporter implements ActionListener {
         this.layout.putConstraint(SpringLayout.SOUTH, importButton, h + 20, SpringLayout.SOUTH, this.prefixField);
         importButton.addActionListener(this);
         
-        this.dataTable = new DataTable(this.chooserButton, this.importButton);
+        this.dataTable = new DataTable(this.chooserButton, this.importButton, this.frame);
         this.table = new JTable(this.dataTable);
         JScrollPane scrollPane = new JScrollPane(this.table);
         this.contentPane.add(scrollPane);

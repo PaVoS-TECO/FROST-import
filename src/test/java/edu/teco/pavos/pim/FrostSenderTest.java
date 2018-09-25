@@ -9,6 +9,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
@@ -26,7 +27,7 @@ public class FrostSenderTest {
 				+ "\", \"definition\": \"http://www.qudt.org/qudt/owl/1.0.0/quantity/Instances.html#Acceleration\","
 				+ "\"@iot.id\": \"" + id + "\"}";
 		String url = "http://pavos-02.teco.edu/FROST-Server/v1.0/ObservedProperties";
-		FrostSender.sendToFrostServer(url, observedProperty);
+		FrostSender.sendToFrostServer(url, observedProperty, new ArrayList<String>());
 		
 		try {
 			TimeUnit.SECONDS.sleep(5);

@@ -5,11 +5,12 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import javax.swing.JOptionPane;
+
+import com.opencsv.CSVReader;
 
 /**
  * Implementation of the FileReaderStrategy interface for CSV files.
@@ -20,6 +21,7 @@ public class CSVReaderStrategy implements FileReaderStrategy {
 	private String iotIDImport;
 	private String url;
 	private DataTable dataTable;
+	private ArrayList<String> errors;
 	
 	private static String OBSERVED_PROPERTY = "observedProperty";
 	private static String SENSOR = "sensor";
@@ -37,6 +39,7 @@ public class CSVReaderStrategy implements FileReaderStrategy {
     	
     	this.url = url;
     	this.iotIDImport = "";
+    	this.errors = new ArrayList<String>();
     	
     }
     
@@ -74,72 +77,92 @@ public class CSVReaderStrategy implements FileReaderStrategy {
 			while (cbr.readLine() != null) {
 				total++;
 			}
-			
+			cbr.close();
 			
 			BufferedReader br = new BufferedReader(new FileReader(file));
-			int number = 0;
-			String line;
+			CSVReader csvReader = new CSVReader(br);
 			
-			while ((line = br.readLine()) != null) {
+			int number = 0;
+			String[] line;
+			
+			while ((line = csvReader.readNext()) != null) {
 				
 				number++;
 				int percent = number * 100 / total;
 				this.dataTable.setProgress(file.getAbsolutePath(), percent);
-				String[] s = line.split("Ϣ");
 				
-				if (s.length >= 2) {
+				if (line.length >= 2) {
 					
-					if (s[0].equals(OBSERVED_PROPERTY) && s.length >= 5) {
+					if (line[0].equals(OBSERVED_PROPERTY) && line.length >= 5) {
 						
-						String json = this.getObservedProperty(s);
-				        FrostSender.sendToFrostServer(this.url + "ObservedProperties", json);
+						String json = this.getObservedProperty(line);
+				        FrostSender.sendToFrostServer(this.url + "ObservedProperties", json, this.errors);
 				        
-					} else if (s[0].equals(SENSOR) && s.length >= 6) {
+					} else if (line[0].equals(SENSOR) && line.length >= 6) {
 						
-						String json = this.getSensor(s);
-				        FrostSender.sendToFrostServer(this.url + "Sensors", json);
+						String json = this.getSensor(line);
+				        FrostSender.sendToFrostServer(this.url + "Sensors", json, this.errors);
 				        
-					} else if (s[0].equals(LOCATION) && s.length >= 6) {
+					} else if (line[0].equals(LOCATION) && line.length >= 6) {
 						
-						String json = this.getLocation(s);
-				        FrostSender.sendToFrostServer(this.url + "Locations", json);
+						String json = this.getLocation(line);
+				        FrostSender.sendToFrostServer(this.url + "Locations", json, this.errors);
 				        
-					} else if (s[0].equals(FEATURE_OF_INTEREST) && s.length >= 6) {
+					} else if (line[0].equals(FEATURE_OF_INTEREST) && line.length >= 6) {
 						
-						String json = this.getFoI(s);
-				        FrostSender.sendToFrostServer(this.url + "FeaturesOfInterest", json);
+						String json = this.getFoI(line);
+				        FrostSender.sendToFrostServer(this.url + "FeaturesOfInterest", json, this.errors);
 				        
-					} else if (s[0].equals(THING) && s.length >= 6) {
+					} else if (line[0].equals(THING) && line.length >= 5) {
 						
-						String json = this.getThing(s);
-				        FrostSender.sendToFrostServer(this.url + "Things", json);
+						String json = this.getThing(line);
+				        FrostSender.sendToFrostServer(this.url + "Things", json, this.errors);
 				        
-					} else if (s[0].equals(DATASTREAM) && s.length >= 8) {
+					} else if (line[0].equals(DATASTREAM) && line.length >= 8) {
 						
-						String json = this.getDataStream(s);
-				        FrostSender.sendToFrostServer(this.url + "Datastreams", json);
+						String json = this.getDataStream(line);
+				        FrostSender.sendToFrostServer(this.url + "Datastreams", json, this.errors);
 				        
-					} else if (s[0].equals(OBSERVATION) && s.length >= 7) {
+					} else if (line[0].equals(OBSERVATION) && line.length >= 7) {
 						
-						String json = this.getObservation(s);
-				        FrostSender.sendToFrostServer(this.url + "Observations", json);
+						String json = this.getObservation(line);
+				        FrostSender.sendToFrostServer(this.url + "Observations", json, this.errors);
 				        
 					} else {
 						
 						this.errorlines++;
+						this.errors.add("A data line could not be used.\nType: " + line[0] + "\n@iot.id:" + line[1]);
 						
 					}
+					
+					System.out.println(line[0]);
 					
 				} else {
 					
 					this.errorlines++;
+					this.errors.add("A data line could not be used.");
 					
 				}
 				
 			}
 			
+			csvReader.close();
 			br.close();
 			System.out.println(this.errorlines);
+			
+			if (!this.errors.isEmpty()) {
+				String path = file.getParent() + File.separator + "Errors" + file.getName() + ".log";
+				PrintWriter writer = new PrintWriter(new File(path), "UTF-8");
+				for (String l : this.errors) {
+					writer.println(l);
+				}
+				writer.close();
+				JOptionPane.showMessageDialog(this.dataTable.getFrame(),
+					    "Errors occured during the import. A logfile has been created on the files location.",
+					    "Warning",
+					    JOptionPane.WARNING_MESSAGE);
+			}
+			
 			
 		} catch (FileNotFoundException e) {
 			
@@ -154,252 +177,158 @@ public class CSVReaderStrategy implements FileReaderStrategy {
     }
     
     private String getObservedProperty(String[] data) {
-    	
-    	JSONObject obj = new JSONObject();
-        obj.put("@iot.id", this.iotIDImport + data[1]);
-        obj.put("name", data[2]);
-        obj.put("description", data[3]);
-        obj.put("definition", data[4]);
         
-        String json = obj.toJSONString();
+        String json = "{"
+        		+ "\"@iot.id\":\"" + this.iotIDImport + data[1] + "\","
+        		+ "\"name\":\"" + data[2] + "\","
+        		+ "\"description\":\"" + data[3] + "\","
+        		+ "\"definition\":\"" + data[4] + "\""
+        		+ "}";
+        
         return json;
         
     }
     
     private String getSensor(String[] data) {
-    	
-    	JSONObject obj = new JSONObject();
-		obj.put("@iot.id", iotIDImport + data[1]);
-        obj.put("name", data[2]);
-        obj.put("description", data[3]);
-        obj.put("encodingType", data[4]);
-        obj.put("metadata", data[5]);
         
-        String json = obj.toJSONString();
+        String json = "{"
+        		+ "\"@iot.id\":\"" + this.iotIDImport + data[1] + "\","
+        		+ "\"name\":\"" + data[2] + "\","
+        		+ "\"description\":\"" + data[3] + "\","
+        		+ "\"encodingType\":\"" + data[4] + "\","
+                + "\"metadata\":\"" + data[5] + "\""
+        		+ "}";
+        
         return json;
         
     }
     
     private String getLocation(String[] data) {
-    	
-    	JSONObject obj = new JSONObject();
-		obj.put("@iot.id", iotIDImport + data[1]);
-        obj.put("name", data[2]);
-        obj.put("description", data[3]);
-        obj.put("encodingType", data[4]);
-        
-        JSONParser parser = new JSONParser();
-		try {
-			
-			Object o = parser.parse(data[5]);
-			JSONObject location = (JSONObject) o;
-	        obj.put("location", location);
-	        
-	        String json = obj.toJSONString();
-	        return json;
-	        
-		} catch (ParseException e) {
-			
-			this.errorlines++;
-			System.out.println(e.getLocalizedMessage());
-			
-		}
 		
-		return "";
+		String json = "{"
+        		+ "\"@iot.id\":\"" + this.iotIDImport + data[1] + "\","
+        		+ "\"name\":\"" + data[2] + "\","
+        		+ "\"description\":\"" + data[3] + "\","
+        		+ "\"encodingType\":\"" + data[4] + "\","
+                + "\"location\":" + data[5]
+        		+ "}";
+        
+        return json;
 		
     }
     
     private String getFoI(String[] data) {
-    	
-    	JSONObject obj = new JSONObject();
-		obj.put("@iot.id", iotIDImport + data[1]);
-        obj.put("name", data[2]);
-        obj.put("description", data[3]);
-        obj.put("encodingType", data[4]);
-        
-        JSONParser parser = new JSONParser();
-		try {
-			
-			Object o = parser.parse(data[5]);
-			JSONObject feature = (JSONObject) o;
-	        obj.put("feature", feature);
-	        
-	        String json = obj.toJSONString();
-	        return json;
-	        
-		} catch (ParseException e) {
-			
-			this.errorlines++;
-			System.out.println(e.getLocalizedMessage());
-			
-		}
 		
-		return "";
+		String json = "{"
+        		+ "\"@iot.id\":\"" + this.iotIDImport + data[1] + "\","
+        		+ "\"name\":\"" + data[2] + "\","
+        		+ "\"description\":\"" + data[3] + "\","
+        		+ "\"encodingType\":\"" + data[4] + "\","
+                + "\"feature\":" + data[5]
+        		+ "}";
+        
+        return json;
 		
     }
     
     private String getThing(String[] data) {
-    	
-    	JSONObject obj = new JSONObject();
-		obj.put("@iot.id", iotIDImport + data[1]);
-        obj.put("name", data[2]);
-        obj.put("description", data[3]);
-        
-        JSONParser parser = new JSONParser();
-		try {
-			
-			if (!data[4].equals("")) {
-				
-				Object o = parser.parse(data[4]);
-				JSONObject properties = (JSONObject) o;
-		        obj.put("properties", properties);
-		        
-			}
-	        
-	        JSONArray locations = new JSONArray();
-        	String[] ids = data[5].split(";");
-        	
-        	for (String id : ids) {
-        		
-        		if (!id.equals("")) {
-        			
-        			JSONObject iotID = new JSONObject();
-            		iotID.put("@iot.id", iotIDImport + id);
-            		locations.add(iotID);
-            		
-        		}
-        		
-        	}
-        	
-        	obj.put("Locations", locations);
-        	
-        	String json = obj.toJSONString();
-            return json;
-            
-		} catch (ParseException e) {
-			
-			this.errorlines++;
-			System.out.println(e.getLocalizedMessage());
-			
+		
+		String json = "{"
+        		+ "\"@iot.id\":\"" + this.iotIDImport + data[1] + "\","
+        		+ "\"name\":\"" + data[2] + "\","
+        		+ "\"description\":\"" + data[3] + "\"";
+		
+		if (!data[4].equals("")) {
+	        json += ",\"properties\":" + data[4];
 		}
 		
-		return "";
+		if (data.length >= 6 && !data[5].equals("")) {
+			String[] ids = data[5].split(";");
+			json += ",\"Locations\":[";
+			for (int i = 0; i < ids.length; i++) {
+				json += "{\"@iot.id\":\"" + this.iotIDImport + ids[i] + "\"}";
+				if ((i + 1) < ids.length) {
+					json += ",";
+				}
+			}
+			json += "]";
+		}
+        		
+        json += "}";
+        
+        return json;
         
     }
     
     private String getDataStream(String[] data) {
-    	
-    	JSONObject obj = new JSONObject();
-		obj.put("@iot.id", iotIDImport + data[1]);
-        obj.put("name", data[2]);
-        obj.put("description", data[3]);
-        obj.put("observationType", data[4]);
-        
-        JSONParser parser = new JSONParser();
-		try {
-			
-			Object o = parser.parse(data[5]);
-			JSONObject uom = (JSONObject) o;
-	        obj.put("unitOfMeasurement", uom);
-	        
-	        JSONObject thing = new JSONObject();
-	        thing.put("@iot.id", iotIDImport + data[6]);
-	        obj.put("Thing", thing);
-	        
-	        JSONObject observerProperty = new JSONObject();
-	        observerProperty.put("@iot.id", iotIDImport + data[7]);
-	        obj.put("ObservedProperty", observerProperty);
-	        
-	        JSONObject sensor = new JSONObject();
-	        sensor.put("@iot.id", iotIDImport + data[8]);
-	        obj.put("Sensor", sensor);
-	        
-
-	        if (data.length >= 10 && !data[9].equals("")) {
+		
+		String json = "{"
+        		+ "\"@iot.id\":\"" + this.iotIDImport + data[1] + "\","
+        		+ "\"name\":\"" + data[2] + "\","
+        		+ "\"description\":\"" + data[3] + "\","
+				+ "\"observationType\":\"" + data[4] + "\","
+				+ "\"unitOfMeasurement\":" + data[5] + ","
+				+ "\"Thing\":{\"@iot.id\":\"" + this.iotIDImport + data[6] + "\"},"
+				+ "\"ObservedProperty\":{\"@iot.id\":\"" + this.iotIDImport + data[7] + "\"},"
+				+ "\"Sensor\":{\"@iot.id\":\"" + this.iotIDImport + data[8] + "\"}";
+		
+		if (data.length >= 10 && !data[9].equals("")) {
+        	
+        	json += ",\"observedArea\":" + data[9];
+	        if (data.length >= 11 && !data[10].equals("")) {
 	        	
-	        	obj.put("observedArea", data[9]);
-		        if (data.length >= 11 && !data[10].equals("")) {
+	        	json += ",\"phenomenonTime\":\"" + data[10] + "\"";
+		        if (data.length >= 12 && !data[11].equals("")) {
 		        	
-		        	obj.put("phenomenonTime", data[10]);
-			        if (data.length >= 12 && !data[11].equals("")) {
-			        	
-			        	obj.put("resultTime", data[11]);
-			        	
-			        }
-			        
+		        	json += ",\"resultTime\":\"" + data[11] + "\"";
+		        	
 		        }
 		        
 	        }
 	        
-	        String json = obj.toJSONString();
-	        return json;
-	        
-		} catch (ParseException e) {
-			
-			this.errorlines++;
-			System.out.println(e.getLocalizedMessage());
-			
-		}
-		
-		return "";
+        }
+        		
+        json += "}";
+        
+        return json;
 		
     }
     
     private String getObservation(String[] data) {
-    	
-    	JSONObject obj = new JSONObject();
-		obj.put("@iot.id", iotIDImport + data[1]);
-        obj.put("phenomenonTime", data[2]);
-        obj.put("result", data[3]);
-        
-        if (data[4].equals("null")) {
-        	obj.put("resultTime", data[2]);
+		
+		String json = "{"
+        		+ "\"@iot.id\":\"" + this.iotIDImport + data[1] + "\","
+        		+ "\"phenomenonTime\":\"" + data[2] + "\","
+        		+ "\"result\":" + data[3] + ",";
+		
+		if (data[4].equals("null")) {
+			json += "\"resultTime\":\"" + data[2] + "\",";
         } else {
-        	obj.put("resultTime", data[4]);
+        	json += "\"resultTime\":\"" + data[4] + "\",";
         }
-        
-        
-        JSONObject dataStream = new JSONObject();
-        dataStream.put("@iot.id", iotIDImport + data[5]);
-        obj.put("Datastream", dataStream);
-        
-        //TODO
-        // Here there has to be done a change
-        JSONObject featureOI = new JSONObject();
-        featureOI.put("@iot.id", iotIDImport + "8828643"); // iotIDImport + data[6]
-        obj.put("FeatureOfInterest", featureOI);
-        
-        JSONParser parser = new JSONParser();
-
-        if (data.length >= 8 && !data[7].equals("")) {
+		
+		json += "\"Datastream\":{\"@iot.id\":\"" + this.iotIDImport + data[5] + "\"}";
+		if (!data[6].equals("")) {
+			json += ",\"FeatureOfInterest\":{\"@iot.id\":\"" + this.iotIDImport + data[6] + "\"}";
+		}
+		
+		if (data.length >= 8 && !data[7].equals("")) {
         	
-        	obj.put("resultQuality", data[7]);
+        	json += ",\"resultQuality\": \"" + data[7] + "\"";
             if (data.length >= 9 && !data[8].equals("")) {
             	
-            	obj.put("validTime", data[8]);
-            	
-            }
-            
-            try {
-            	
-    	        if (data.length >= 10 && !data[9].equals("")) {
+            	json += ",\"validTime\": \"" + data[8] + "\"";
+            	if (data.length >= 10 && !data[9].equals("")) {
     	        	
-    	        	Object ob = parser.parse(data[9]);
-    				JSONObject param = (JSONObject) ob;
-    		        obj.put("parameters", param);
+    		        json += ",\"parameters\": " + data[8];
     		        
     	        }
-    	        
-    		} catch (ParseException e) {
-    			
-    			this.errorlines++;
-    			System.out.println(e.getLocalizedMessage());
-    			
-    		}
+            }
             
         }
+        		
+        json += "}";
         
-        String json = obj.toJSONString();
         return json;
         
     }

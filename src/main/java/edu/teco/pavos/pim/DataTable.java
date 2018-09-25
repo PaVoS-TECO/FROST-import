@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import javax.swing.JButton;
+import javax.swing.JFrame;
 import javax.swing.table.AbstractTableModel;
 
 /**
@@ -21,18 +22,30 @@ public class DataTable extends AbstractTableModel {
 	private JButton chooser;
 	private JButton importer;
 
+	private JFrame frame;
+
 	/**
 	 * Default Constructor
 	 * @param chooser is a button
 	 * @param importer is a button
+	 * @param frame is a frame
 	 */
-	public DataTable(JButton chooser, JButton importer) {
+	public DataTable(JButton chooser, JButton importer, JFrame frame) {
 		
 		this.chooser = chooser;
 		this.importer = importer;
 		this.files = new ArrayList<String>();
 		this.fileProgress = new HashMap<String, Integer>();
+		this.frame = frame;
 		
+	}
+	
+	/**
+	 * Returns the frame of the window
+	 * @return the frame
+	 */
+	public JFrame getFrame() {
+		return this.frame;
 	}
 	
 	/**

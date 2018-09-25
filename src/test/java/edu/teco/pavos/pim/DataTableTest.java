@@ -5,6 +5,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 
 import javax.swing.JButton;
+import javax.swing.JFrame;
 
 import org.junit.Test;
 
@@ -21,7 +22,7 @@ public class DataTableTest {
 		JButton b = new JButton();
 		a.setEnabled(false);
 		b.setEnabled(false);
-		DataTable table = new DataTable(a, b);
+		DataTable table = new DataTable(a, b, new JFrame());
 		
 		assertTrue(!a.isEnabled());
 		assertTrue(!b.isEnabled());

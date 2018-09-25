@@ -2,6 +2,12 @@ package edu.teco.pavos.pim;
 
 import static org.junit.Assert.assertTrue;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -11,11 +17,64 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.Test;
 
+import com.opencsv.CSVWriter;
+
 /**
  * Test of the CSVReaderStrategy
  * @author Jean Baumgarten
  */
 public class CSVReaderStrategyTest {
+	
+	@Test
+	public void buildUp() {
+		
+		File file = new File(System.getProperty("user.home") + File.separator + "Desktop/froststealer.csv");
+		File file2 = new File(System.getProperty("user.home") + File.separator + "Desktop/observations.csv");
+		BufferedReader cbr;
+		BufferedReader br;
+		PrintWriter writer;
+		
+		try {
+			cbr = new BufferedReader(new FileReader(file));
+			
+			writer = new PrintWriter(System.getProperty("user.home") + File.separator + "Desktop/sensorup.csv", "UTF-8");
+			CSVWriter csvWriter = new CSVWriter(writer,
+	                CSVWriter.DEFAULT_SEPARATOR,
+	                CSVWriter.DEFAULT_QUOTE_CHARACTER,
+	                CSVWriter.DEFAULT_ESCAPE_CHARACTER,
+	                CSVWriter.DEFAULT_LINE_END);
+			String line;
+			while ((line = cbr.readLine()) != null) {
+				
+				String[] elements = line.split("Ϣ");
+				csvWriter.writeNext(elements);
+				
+			}
+			cbr.close();
+			
+			br = new BufferedReader(new FileReader(file2));
+			while ((line = br.readLine()) != null) {
+				
+				String[] elements = line.split("Ϣ");
+				elements[6] = "";
+				csvWriter.writeNext(elements);
+				
+			}
+			br.close();
+			
+			csvWriter.close();
+			writer.close();
+			
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+	}
 
 	@Test
 	public void getObservedPropertyTest() {

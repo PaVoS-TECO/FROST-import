@@ -6,6 +6,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import javax.swing.JButton;
+import javax.swing.JFrame;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -23,7 +24,7 @@ public class FileImporterTest {
 		
 		JButton a = new JButton();
 		JButton b = new JButton();
-		FileImporter imp = new FileImporter("", new DataTable(a, b), "");
+		FileImporter imp = new FileImporter("", new DataTable(a, b, new JFrame()), "");
 		String data1 = "somwthing.csv";
 		String data2 = "somwthing/more/complex.csv";
 		

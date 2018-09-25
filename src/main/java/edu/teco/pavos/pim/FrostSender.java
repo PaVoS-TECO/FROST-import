@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 
 /**
  * Sends Data to the FROST-Server.
@@ -22,8 +23,9 @@ public final class FrostSender {
      * Sends the given JsonObject to the FROST-Server.
      * @param surl is the url to which information has to be sent.
      * @param json contains the information to send.
+     * @param errors that occur
      */
-    public static void sendToFrostServer(final String surl, final String json) {
+    public static void sendToFrostServer(final String surl, final String json, ArrayList<String> errors) {
     	
     	try {
     		
@@ -48,12 +50,16 @@ public final class FrostSender {
 			    
             } catch (IOException e) {
             	
+            	errors.add(e.getLocalizedMessage());
+            	errors.add("JSON: " + json);
             	System.out.println(e.getLocalizedMessage());
             	
             }
             
         } catch (IOException e) {
         	
+        	errors.add(e.getLocalizedMessage());
+        	errors.add("JSON: " + json);
         	System.out.println(e.getLocalizedMessage());
         	
         }
