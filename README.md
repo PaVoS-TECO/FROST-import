@@ -1,2 +1,2 @@
 # FROST-import
-Imports Data and sends it to FROST.
+Standalone desktop client to import data to a FROST-Server.
